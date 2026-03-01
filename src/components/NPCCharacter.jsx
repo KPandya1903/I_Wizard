@@ -147,9 +147,26 @@ export default function NPCCharacter({
   useFrame((_, delta) => {
     mixerRef.current?.update(delta)
 
-    const ai = aiRef.current
     const group = groupRef.current
     if (!group) return
+
+    // Special case: Villain stays completely still at spawn point
+    if (character === 'villian') {
+      npcPositions[character] = { x: position[0], z: position[2] }
+
+      if (currentAnimRef.current !== 'idle') {
+        const idleAction = actionsRef.current['idle']
+        if (idleAction) {
+          const prevAction = actionsRef.current[currentAnimRef.current]
+          if (prevAction) prevAction.fadeOut(BLEND_DURATION)
+          idleAction.reset().fadeIn(BLEND_DURATION).play()
+          currentAnimRef.current = 'idle'
+        }
+      }
+      return
+    }
+
+    const ai = aiRef.current
 
     // Report position to shared store
     npcPositions[character] = { x: ai.pos.x, z: ai.pos.z }
