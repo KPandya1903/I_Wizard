@@ -450,9 +450,9 @@ export default function DuelSceneMultiplayer({ selectedCharacter, opponentCharac
       opponentGroupRef.current.rotation.y = Math.atan2(pp.x - op.x, pp.z - op.z)
     }
 
-    // Broadcast local position at ~20fps (every 3 frames)
+    // Broadcast local position at ~15fps (every 8 frames) to avoid network buffer flooding
     frameCounterRef.current++
-    if (frameCounterRef.current % 3 === 0) {
+    if (frameCounterRef.current % 8 === 0) {
       sendData?.({ type: 'pos', x: pp.x, y: pp.y || 0, z: pp.z, anim: pAnim })
     }
 

@@ -6,8 +6,8 @@ import { CHARACTER_CONFIGS } from '../data/characterConfigs'
 import { NPC_GROUPS, GROUP_SCATTER_RADIUS, ARRIVE_AT_GROUP_DIST } from '../data/groupConfig'
 import { npcPositions, npcGroupAssignment } from '../lib/npcStore'
 
-const HALL_X = [-12.6, 12.6]
-const HALL_Z = [-49, 49]
+const HALL_X = [-9, 9]
+const HALL_Z = [-37, 37]
 const WALK_SPEED = 1.8
 const BLEND_DURATION = 0.3
 

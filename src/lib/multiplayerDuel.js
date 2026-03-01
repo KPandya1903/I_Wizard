@@ -57,7 +57,7 @@ function attachConn(connection) {
   }
 
   conn.on('data', (data) => {
-    console.log('[MP] data received:', data?.type)
+    if (data?.type !== 'pos') console.log('[MP] data received:', data?.type)
     onDataCallback?.(data)
   })
   conn.on('open', () => { console.log('[MP] conn open event'); fireOpen() })
@@ -92,7 +92,7 @@ export function joinRoom(roomCode) {
     peer = new Peer(undefined, ICE_CONFIG)
     peer.on('open', (id) => {
       console.log('[MP] guest peer open, ID:', id, '— calling peer.connect()')
-      const connection = peer.connect(roomCode.trim(), { serialization: 'json' })
+      const connection = peer.connect(roomCode.trim(), { reliable: true, serialization: 'json' })
       attachConn(connection)
 
       // Timeout: if DataChannel doesn't open within 25s, show error

@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { HALL } from './hallConfig'
 
-export default function FloatingCandles({ count = 300 }) {
+export default function FloatingCandles({ count = 200 }) {
   const candleRef = useRef()
   const flameRef = useRef()
   const dummy = useMemo(() => new THREE.Object3D(), [])
@@ -14,7 +14,8 @@ export default function FloatingCandles({ count = 300 }) {
       data.push({
         x: (Math.random() - 0.5) * (HALL.width - 10),
         baseY: 15 + Math.random() * 15,
-        z: (Math.random() - 0.5) * (HALL.length - 20),
+        // Keep candles away from both end walls — stops bloom washing over the banners
+        z: (Math.random() - 0.5) * (HALL.length - 24),
         phase: Math.random() * Math.PI * 2,
         speed: 0.3 + Math.random() * 0.4,
         floatAmp: 0.3 + Math.random() * 0.5,

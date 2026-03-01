@@ -20,6 +20,7 @@ const VOICE_MAP = {
   adam: 'TxGEqnHWrfWFTfGW9XjX',
   aiden: 'VR6AewLTigWG4xSOukaG',
   aj: 'ErXwobaYiN019PkySvjV',
+  villian: OPPONENT_VOICE_ID,
 }
 
 // --- Web Audio API (bypasses autoplay policy once unlocked) ---
@@ -57,6 +58,8 @@ export function unlockAudioContext() {
 export function stopSpeaking() {
   try { currentSource?.stop() } catch (_) { }
   currentSource = null
+  try { opponentSource?.stop() } catch (_) { }
+  opponentSource = null
   if (typeof speechSynthesis !== 'undefined') {
     speechSynthesis.cancel()
   }

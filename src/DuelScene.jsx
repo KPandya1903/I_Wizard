@@ -178,11 +178,43 @@ function HitBurst({ id, position, color, onDone }) {
   )
 }
 
+// ── Level-based aura lighting around the opponent ────────────────────────────
+function OpponentAura({ level, opponentHeight: h }) {
+  const auraRef = useRef()
+  useFrame(({ clock }) => {
+    if (!auraRef.current) return
+    const t = clock.elapsedTime
+    auraRef.current.children.forEach((light, i) => {
+      if (light.isLight) {
+        const base = light.userData.base || 1
+        light.intensity = base + Math.sin(t * 1.8 + i * 1.3) * base * 0.4
+      }
+    })
+  })
+  if (level < 2) return null
+  if (level === 2) return (
+    <group ref={auraRef}>
+      <pointLight position={[-1.2, h * 0.6, 0.3]} color="#ff3300" intensity={4} distance={6} userData={{ base: 4 }} />
+      <pointLight position={[1.2, h * 0.6, 0.3]} color="#ff6600" intensity={4} distance={6} userData={{ base: 4 }} />
+      <pointLight position={[0, 0.3, 0]} color="#cc2200" intensity={3} distance={4} userData={{ base: 3 }} />
+    </group>
+  )
+  return (
+    <group ref={auraRef}>
+      <pointLight position={[-1.5, h * 0.7, 0.2]} color="#9900ff" intensity={7} distance={8} userData={{ base: 7 }} />
+      <pointLight position={[1.5, h * 0.7, 0.2]} color="#ff0033" intensity={7} distance={8} userData={{ base: 7 }} />
+      <pointLight position={[0, h * 1.1, 0]} color="#cc00ff" intensity={6} distance={7} userData={{ base: 6 }} />
+      <pointLight position={[0, h * 0.4, -0.5]} color="#ff4400" intensity={5} distance={5} userData={{ base: 5 }} />
+      <pointLight position={[0, 0.2, 0]} color="#440066" intensity={8} distance={5} userData={{ base: 8 }} />
+    </group>
+  )
+}
+
 // ── Main scene ────────────────────────────────────────────────────────────────
 export default function DuelScene({ selectedCharacter, opponent }) {
   const playerHeight = CHARACTER_CONFIGS[selectedCharacter]?.height || 1.8
-  const levelConfigRef = useRef(LEVEL_CONFIGS[duelState.currentLevel] || LEVEL_CONFIGS[1])
-  const levelConfig = levelConfigRef.current
+  // Read level config fresh every render — useRef would freeze the level at mount time
+  const levelConfig = LEVEL_CONFIGS[duelState.currentLevel] || LEVEL_CONFIGS[1]
 
   const { wandPosX, wandPosY, wandPosZ, wandRotX, wandRotY, wandRotZ } = useControls('Wand Tweaks', {
     wandPosX: { value: 0, min: -0.5, max: 0.5, step: 0.01 },
@@ -559,7 +591,6 @@ export default function DuelScene({ selectedCharacter, opponent }) {
 
     // ── Cooldowns → store ──
     const cd = cooldownsRef.current
-    if (cd.q > 0) cd.q = Math.max(0, cd.q - delta)
     if (cd.e > 0) cd.e = Math.max(0, cd.e - delta)
     if (cd.r > 0) cd.r = Math.max(0, cd.r - delta)
     if (cd.f > 0) cd.f = Math.max(0, cd.f - delta)
@@ -608,6 +639,11 @@ export default function DuelScene({ selectedCharacter, opponent }) {
           animState={opponentAnimState}
           castTrigger={opponentCastTrigger}
           wandElement={<DuelWand position={[wandPosX, wandPosY, wandPosZ]} rotation={[wandRotX, wandRotY, wandRotZ]} />}
+        />
+        {/* Aura — colour/intensity scales with level */}
+        <OpponentAura
+          level={duelState.currentLevel}
+          opponentHeight={(CHARACTER_CONFIGS[opponent]?.height || 1.8) * levelConfig.heightScale}
         />
       </group>
 

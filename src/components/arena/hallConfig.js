@@ -1,13 +1,13 @@
 import * as THREE from 'three'
 
 export const HALL = {
-  length: 140,
-  width: 42,
-  height: 28,
+  length: 80,
+  width: 26,
+  height: 20,
   wallThickness: 1.0,
-  columnCount: 14,
-  windowCount: 10,
-  torchCount: 14,
+  columnCount: 8,
+  windowCount: 6,
+  torchCount: 8,
 }
 
 export const COLORS = {

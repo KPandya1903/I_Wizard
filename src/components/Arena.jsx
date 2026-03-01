@@ -9,6 +9,7 @@ import HouseEndDisplays from './arena/HouseEndDisplays'
 import Owls from './arena/Owls'
 import FloatingCandles from './arena/FloatingCandles'
 import Carpet from './arena/Carpet'
+import HallProps from './arena/HallProps'
 
 export default function Arena() {
   const hw = HALL.width / 2
@@ -42,6 +43,7 @@ export default function Arena() {
       <HouseEndDisplays />
       <FloatingCandles count={60} />
       <Carpet />
+      <HallProps />
     </group>
   )
 }

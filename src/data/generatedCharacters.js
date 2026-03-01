@@ -24,19 +24,19 @@ export const GENERATED_CHARACTERS = {
       "jump": "/models/Charecters/Villian/Jumping.fbx",
       "dying": "/models/Charecters/Villian/Dying.fbx"
     },
-    "height": 2.8,
+    "height": 5.6,
     "systemPrompt": "You are a dark wizard Villain at Hogwarts. Be menacing, cold, and speak of dark magic. Keep responses to 1-2 sentences."
   }
 }
 
 export const GENERATED_NPC_PLACEMENTS = {
-  "aj": { "position": [-4.3, 0, 30], "rotation": 0.48 },
-  "villian": { "position": [5.5, 0, -10], "rotation": -0.98 }
+  "aj": { "position": [-4.3, 0, 10], "rotation": 0.48 },
+  "villian": { "position": [0, 0, -32], "rotation": 3.14 }
 }
 
 export const GENERATED_NPC_GROUPS = {
   "group_1": {
-    "meetingPoint": [5.5, 0, -10],
+    "meetingPoint": [0, 0, -20],
     "members": ["aj", "villian"]
   }
 }

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Horse, Chess Harry Potter!
+* source:	https://sketchfab.com/3d-models/horse-chess-harry-potter-3dfa9d3f09744fa1bf2517152fd47834
+* author:	Tror (https://sketchfab.com/Tror)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Horse, Chess Harry Potter!" (https://sketchfab.com/3d-models/horse-chess-harry-potter-3dfa9d3f09744fa1bf2517152fd47834) by Tror (https://sketchfab.com/Tror) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

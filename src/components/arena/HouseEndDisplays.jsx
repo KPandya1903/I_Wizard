@@ -34,7 +34,9 @@ const houses = [
   },
 ]
 
-const xPositions = [-12.6, -4.2, 4.2, 12.6]
+// Hall: 26 wide (half=13). 4 banners each 5 units wide, centred at X=±2.5 and ±7.5
+// Outermost edge: 7.5+2.5=10 < 13 ✔
+const xPositions = [-7.5, -2.5, 2.5, 7.5]
 
 function Artifact({ house, position }) {
   return (
@@ -66,56 +68,48 @@ function Artifact({ house, position }) {
 }
 
 function BackWallDisplay({ house, x, texture }) {
-  const backZ = -HALL.length / 2 + 1.5
+  const backZ = -HALL.length / 2 + 1.2
+  // Keep everything within HALL.height (20). Mural: Y=10, height=10 → spans Y=5–15.
+  // Hanging banner: Y=13, height=6 → spans Y=10–16.
 
   return (
     <group position={[x, 0, backZ]}>
+
       {/* Large mural banner on wall */}
-      <mesh position={[0, 14, 0]}>
-        <planeGeometry args={[10, 14]} />
-        <meshStandardMaterial
-          map={texture}
-          emissive={house.emissive}
-          emissiveIntensity={0.15}
-          side={THREE.FrontSide}
-          roughness={0.85}
-        />
+      <mesh position={[0, 10, 0]}>
+        <planeGeometry args={[5, 10]} />
+        <meshBasicMaterial map={texture} side={THREE.FrontSide} toneMapped={false} />
       </mesh>
 
-      {/* Decorative border around mural */}
-      {/* Top */}
-      <mesh position={[0, 21.2, 0.1]}>
-        <boxGeometry args={[11, 0.4, 0.3]} />
+      {/* Decorative border — top */}
+      <mesh position={[0, 15.3, 0.1]}>
+        <boxGeometry args={[5.6, 0.35, 0.25]} />
         <meshStandardMaterial color={COLORS.stoneDark} metalness={0.4} roughness={0.6} />
       </mesh>
-      {/* Bottom */}
-      <mesh position={[0, 6.8, 0.1]}>
-        <boxGeometry args={[11, 0.4, 0.3]} />
+      {/* bottom */}
+      <mesh position={[0, 4.7, 0.1]}>
+        <boxGeometry args={[5.6, 0.35, 0.25]} />
         <meshStandardMaterial color={COLORS.stoneDark} metalness={0.4} roughness={0.6} />
       </mesh>
-      {/* Left */}
-      <mesh position={[-5.2, 14, 0.1]}>
-        <boxGeometry args={[0.4, 14.8, 0.3]} />
+      {/* left */}
+      <mesh position={[-2.8, 10, 0.1]}>
+        <boxGeometry args={[0.35, 10.7, 0.25]} />
         <meshStandardMaterial color={COLORS.stoneDark} metalness={0.4} roughness={0.6} />
       </mesh>
-      {/* Right */}
-      <mesh position={[5.2, 14, 0.1]}>
-        <boxGeometry args={[0.4, 14.8, 0.3]} />
+      {/* right */}
+      <mesh position={[2.8, 10, 0.1]}>
+        <boxGeometry args={[0.35, 10.7, 0.25]} />
         <meshStandardMaterial color={COLORS.stoneDark} metalness={0.4} roughness={0.6} />
       </mesh>
 
       {/* Hanging banner in front of mural */}
-      <mesh position={[0, 18, 1.5]}>
-        <planeGeometry args={[3, 10]} />
-        <meshStandardMaterial
-          map={texture}
-          side={THREE.DoubleSide}
-          roughness={0.9}
-        />
+      <mesh position={[0, 13, 1.5]}>
+        <planeGeometry args={[2, 6]} />
+        <meshBasicMaterial map={texture} side={THREE.DoubleSide} toneMapped={false} />
       </mesh>
 
       {/* Artifact on pedestal */}
-      <Artifact house={house} position={[0, 0, 4]} />
+      <Artifact house={house} position={[0, 0, 3]} />
     </group>
   )
 }
@@ -156,6 +150,18 @@ export default function HouseEndDisplays() {
           house={house}
           x={xPositions[i]}
           texture={textures[house.name]}
+        />
+      ))}
+
+      {/* Stable lights for back-wall flags — positioned in front of each banner */}
+      {xPositions.map((x, i) => (
+        <pointLight
+          key={`banner-light-${i}`}
+          position={[x, 10, -HALL.length / 2 + 5]}
+          color="#fff5dd"
+          intensity={3}
+          distance={12}
+          decay={2}
         />
       ))}
 

@@ -26,8 +26,8 @@ const ZOOM_SENS = 0.02
 const CAM_LERP = 0.08
 
 // Hall bounds
-const BOUND_X = 17.5
-const BOUND_Z = 63
+const BOUND_X = 10.5
+const BOUND_Z = 37
 
 // Floor raycasting
 const raycaster = new THREE.Raycaster()

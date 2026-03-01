@@ -104,6 +104,27 @@ export default function App() {
     sendData(data)
   }, [])
 
+  // Hall background music — plays while in the hall, stops on exit
+  useEffect(() => {
+    const audio = new Audio('/audio/hogwarts_theme.mp3')
+    audio.loop = true
+    audio.volume = 0.35
+
+    if (screen === 'game') {
+      // Browsers require user gesture before playing audio.
+      // unlockAudioContext was already called on the V-key handler,
+      // but we use the HTML Audio element here (separate from Web Audio)
+      // so we just attempt play and catch the autoplay rejection gracefully.
+      const playPromise = audio.play()
+      if (playPromise) playPromise.catch(() => { })
+    }
+
+    return () => {
+      audio.pause()
+      audio.currentTime = 0
+    }
+  }, [screen])
+
   // Preload challenge responses in the background
   useEffect(() => {
     preloadAudio("Hahaha you stupid little boy. You will defeat me? You? hahaha", 'villian')
@@ -132,7 +153,15 @@ export default function App() {
           playerState.lastTranscript = text
 
           const lowerText = text.toLowerCase()
-          if (lowerText.includes('duel') || lowerText.includes('fight') || lowerText.includes('challenge')) {
+          // Accept any phrase that hints at wanting to duel
+          const DUEL_KEYWORDS = [
+            'duel', 'fight', 'challenge', 'battle', 'face me', 'dare',
+            'bring it', "let's go", 'lets go', "i'm ready", 'im ready',
+            'come on', "i'll take you", 'ill take you', 'square up',
+            'spar', 'versus', 'vs', 'attack', 'come at me', 'step up',
+            'meet me', 'show me what you got', 'prove it', 'try me',
+          ]
+          if (DUEL_KEYWORDS.some(kw => lowerText.includes(kw))) {
             if (nearbyNPC) {
               setChallengedNPCs(prev => ({ ...prev, [nearbyNPC]: true }))
 
@@ -160,7 +189,7 @@ export default function App() {
 
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [screen, nearbyGroup, isListening])
+  }, [screen, nearbyGroup, nearbyNPC, isListening])
 
   // ESC to exit single-player duel
   useEffect(() => {

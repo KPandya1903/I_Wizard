@@ -1,0 +1,11 @@
+Model Information:
+* title:	Nimbus 2000
+* source:	https://sketchfab.com/3d-models/nimbus-2000-9e1aa2ff2b5c47c2aeca457a3f6b2f53
+* author:	Alizée BOURBON (https://sketchfab.com/alibabalaboss)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Nimbus 2000" (https://sketchfab.com/3d-models/nimbus-2000-9e1aa2ff2b5c47c2aeca457a3f6b2f53) by Alizée BOURBON (https://sketchfab.com/alibabalaboss) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

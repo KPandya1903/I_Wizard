@@ -1,0 +1,11 @@
+Model Information:
+* title:	Harry Potter Hogwarts Sorting Hat
+* source:	https://sketchfab.com/3d-models/harry-potter-hogwarts-sorting-hat-b041c788cb4e4b40b14faec41ff1abdb
+* author:	urbanmasque (https://sketchfab.com/urbanmasque)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Harry Potter Hogwarts Sorting Hat" (https://sketchfab.com/3d-models/harry-potter-hogwarts-sorting-hat-b041c788cb4e4b40b14faec41ff1abdb) by urbanmasque (https://sketchfab.com/urbanmasque) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

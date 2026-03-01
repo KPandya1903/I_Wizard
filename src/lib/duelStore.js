@@ -18,7 +18,7 @@ export const LEVEL_CONFIGS = {
   2: {
     label: 'The Dark Wizard',
     opponentMaxHP: 150,
-    heightScale: 1.3,
+    heightScale: 2.0,
     damageMult: 1.35,
     incomingDamageMult: 1.2,
     aiSpeed: 5.5,
@@ -34,7 +34,7 @@ export const LEVEL_CONFIGS = {
   3: {
     label: 'The Dark Lord',
     opponentMaxHP: 200,
-    heightScale: 1.6,
+    heightScale: 3.0,
     damageMult: 1.8,
     incomingDamageMult: 1.5,
     aiSpeed: 7,

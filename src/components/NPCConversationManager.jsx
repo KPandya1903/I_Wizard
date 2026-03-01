@@ -70,13 +70,13 @@ async function groupConversationLoop(groupId) {
 
       const contextMsg = recentHistory.length > 0
         ? {
-            role: 'user',
-            content: `The conversation so far:\n${recentHistory.map(h => `${h.name}: "${h.text}"`).join('\n')}\n\nNow it's your turn. Say something.`,
-          }
+          role: 'user',
+          content: `The conversation so far:\n${recentHistory.map(h => `${h.name}: "${h.text}"`).join('\n')}\n\nNow it's your turn. Say something.`,
+        }
         : {
-            role: 'user',
-            content: `You're standing with ${otherNames}. Start a casual conversation.`,
-          }
+          role: 'user',
+          content: `You're standing with ${otherNames}. Start a casual conversation.`,
+        }
 
       try {
         const line = await chat([systemMsg, contextMsg])
@@ -220,7 +220,7 @@ export default function NPCConversationManager({ excludeCharacter }) {
 
     return () => {
       for (const gId of Object.keys(activeLoops)) {
-        activeLoops[gId] = false
+        delete activeLoops[gId]
       }
     }
   }, [excludeCharacter])

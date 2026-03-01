@@ -70,7 +70,7 @@ export default function Scene({
           <Arena />
 
           <PlayerController
-            initialPosition={[0, 0, 42]}
+            initialPosition={[0, 0, 25]}
             groups={groupsList}
             onNearbyGroupChange={onNearbyGroupChange}
             onNearbyNPCChange={onNearbyNPCChange}
