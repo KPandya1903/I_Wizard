@@ -7,11 +7,13 @@ let socket = null
 let onDataCallback = null
 let onDisconnectCallback = null
 let onConnectedCallback = null
+let onVoiceDataCallback = null
 
-export function setCallbacks({ onConnected, onData, onDisconnect }) {
+export function setCallbacks({ onConnected, onData, onDisconnect, onVoiceData }) {
   onConnectedCallback = onConnected
   onDataCallback = onData
   onDisconnectCallback = onDisconnect
+  onVoiceDataCallback = onVoiceData
 }
 
 export function sendData(data) {
@@ -20,10 +22,17 @@ export function sendData(data) {
   }
 }
 
+export function sendVoiceData(audioBlob) {
+  if (socket && socket.connected) {
+    socket.emit('voice-data', audioBlob)
+  }
+}
+
 export function closeMultiplayer() {
   onDataCallback = null
   onDisconnectCallback = null
   onConnectedCallback = null
+  onVoiceDataCallback = null
   if (socket) {
     socket.disconnect()
     socket = null
@@ -42,6 +51,10 @@ function initSocketListeners(socketInstance) {
 
   socketInstance.on('game-data', (data) => {
     if (onDataCallback) onDataCallback(data)
+  })
+
+  socketInstance.on('voice-data', (audioBlob) => {
+    if (onVoiceDataCallback) onVoiceDataCallback(audioBlob)
   })
 
   socketInstance.on('peer-disconnected', () => {

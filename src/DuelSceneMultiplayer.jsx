@@ -12,6 +12,7 @@ import { CHARACTER_CONFIGS } from './data/characterConfigs'
 import { duelState } from './lib/duelStore'
 import { stopSpeaking } from './lib/speak'
 import { handState } from './lib/handTracker'
+import { sendVoiceData } from './lib/multiplayerDuel'
 
 // ── Reuse the same SPELL_DEFS and voice map from DuelScene ──────────────────
 export const SPELL_DEFS_MP = {
@@ -243,9 +244,58 @@ export default function DuelSceneMultiplayer({ selectedCharacter, opponentCharac
           if (gameResultRef.current === 'lose') setPlayerAnimState('dying')
           else setOpponentAnimState('dying')
         }
+      } else if (msg.type === 'voice-blob') {
+        playIncomingAudioStream(msg.blob)
       }
     })
   }, [onRegisterReceiver])
+
+  // ── Web Audio Context for playing incoming chunks ──
+  const audioCtxRef = useRef(null)
+  function playIncomingAudioStream(arrayBuffer) {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)()
+    }
+    const ctx = audioCtxRef.current
+    if (ctx.state === 'suspended') ctx.resume()
+
+    // We expect the arrayBuffer to be an Opus-encoded WebM chunk.
+    // However, decodeAudioData only works on full files with headers, not continuous chunks.
+    // Instead we load it into an HTMLAudioElement via Blob URL for native playback
+    const blob = new Blob([arrayBuffer], { type: 'audio/webm; codecs=opus' })
+    const url = URL.createObjectURL(blob)
+    const audio = new Audio(url)
+    audio.play().catch(e => console.warn('Audio play failed:', e))
+    audio.onended = () => URL.revokeObjectURL(url)
+  }
+
+  // ── Microphone MediaRecorder ──
+  const mediaRecorderRef = useRef(null)
+  const [isMicActive, setIsMicActive] = useState(false)
+
+  useEffect(() => {
+    // We only create the recorder once, on mount/demand
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm; codecs=opus' })
+
+      recorder.ondataavailable = async (e) => {
+        if (e.data.size > 0) {
+          // Convert the internal JS blob (chunks) into an ArrayBuffer and blast it instantly over WS
+          const buffer = await e.data.arrayBuffer()
+          sendVoiceData(buffer)
+        }
+      }
+      mediaRecorderRef.current = recorder
+    }).catch(err => console.warn('Mic access denied:', err))
+
+    return () => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop()
+        mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop())
+      }
+    }
+  }, [])
+
 
   // Keyboard tracking
   useEffect(() => {
@@ -325,12 +375,11 @@ export default function DuelSceneMultiplayer({ selectedCharacter, opponentCharac
     return () => cancelAnimationFrame(frameId)
   }, [castPlayerSpell])
 
-  // Voice spell casting
+  // Voice chat / spell casting (push-to-talk: press V)
   const [voiceStatus, setVoiceStatus] = useState(null)
   const voiceActiveRef = useRef(false)
 
   useEffect(() => {
-    if (!SpeechRecognition) return
     let recognizer = null
 
     const onKeyDown = (e) => {
@@ -338,33 +387,66 @@ export default function DuelSceneMultiplayer({ selectedCharacter, opponentCharac
       e.preventDefault()
       voiceActiveRef.current = true
 
-      recognizer = new SpeechRecognition()
-      recognizer.lang = 'en-US'
-      recognizer.interimResults = true
-      recognizer.continuous = false
-      recognizer.maxAlternatives = 3
-
-      recognizer.onstart = () => setVoiceStatus('🎤 Listening...')
-      recognizer.onresult = (event) => {
-        const text = event.results[event.results.length - 1][0].transcript
-        const spellKeys = ['e', 'r', 'f']
-        const matched = matchSpellFromTranscript(text)
-        const spellKey = (matched && SPELL_DEFS_MP[matched]) ? matched : spellKeys[Math.floor(Math.random() * spellKeys.length)]
-        setVoiceStatus(`🪄 ${SPELL_DEFS_MP[spellKey].name}!`)
-        castPlayerSpell(spellKey)
-        setTimeout(() => setVoiceStatus(null), 1200)
+      // Start capturing MP3 mic data for live voice-chat broadcast
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'inactive') {
+        setIsMicActive(true)
+        // Record very fast chunks (e.g. 250ms latency) to simulate live streaming
+        mediaRecorderRef.current.start(250)
       }
-      recognizer.onerror = () => setVoiceStatus(null)
-      recognizer.onend = () => { voiceActiveRef.current = false; recognizer = null }
-      try { recognizer.start() } catch (_) { voiceActiveRef.current = false }
+
+      if (SpeechRecognition) {
+        recognizer = new SpeechRecognition()
+        recognizer.lang = 'en-US'
+        recognizer.interimResults = true
+        recognizer.continuous = false
+        recognizer.maxAlternatives = 3
+
+        recognizer.onstart = () => setVoiceStatus('🎤 Listening & Transmitting...')
+        recognizer.onresult = (event) => {
+          const text = event.results[event.results.length - 1][0].transcript
+          const spellKeys = ['e', 'r', 'f']
+          const matched = matchSpellFromTranscript(text)
+          if (matched) {
+            setVoiceStatus(`🪄 ${SPELL_DEFS_MP[matched].name}!`)
+            castPlayerSpell(matched)
+            setTimeout(() => setVoiceStatus(null), 1200)
+            if (recognizer) { try { recognizer.abort() } catch (_) { } }
+          }
+        }
+        recognizer.onerror = () => setVoiceStatus(null)
+        recognizer.onend = () => { } // Let keyup handle cleanup
+        try { recognizer.start() } catch (_) { }
+      } else {
+        setVoiceStatus('🎤 Transmitting Voice...')
+      }
+    }
+
+    const onKeyUp = (e) => {
+      if (e.code !== 'KeyV') return
+      e.preventDefault()
+      voiceActiveRef.current = false
+      setVoiceStatus(null)
+      setIsMicActive(false)
+
+      // Stop the mic streamer and flush final buffer
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop()
+      }
+      if (recognizer) { try { recognizer.abort() } catch (_) { } }
     }
 
     window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('keyup', onKeyUp)
     return () => {
       window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('keyup', onKeyUp)
       if (recognizer) { try { recognizer.abort() } catch (_) { } }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop()
+      }
       voiceActiveRef.current = false
       setVoiceStatus(null)
+      setIsMicActive(false)
     }
   }, [castPlayerSpell])
 

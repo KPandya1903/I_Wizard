@@ -43,6 +43,15 @@ export default function MultiplayerLobby({ playerName, selectedCharacter, onRead
     }
   }
 
+  function handleVoiceData(audioBlob) {
+    if (connectedRef.current && duelStartedRef.current) {
+      // The lobby doesn't play audio directly; it's passed via the generic receiver pattern 
+      // if we refactor it, but App.jsx uses onRegisterReceiver which is bound to onData.
+      // To keep it clean, we'll wrap the blob in a standard message format and route it through handleData
+      handleData({ type: 'voice-blob', blob: audioBlob })
+    }
+  }
+
   function handleDisconnect() {
     setView('error')
     // If we never connected, it's a timeout; otherwise opponent left
@@ -52,7 +61,7 @@ export default function MultiplayerLobby({ playerName, selectedCharacter, onRead
   async function handleCreateRoom() {
     isHostRef.current = true
     setView('hosting')
-    setCallbacks({ onConnected: handleConnected, onData: handleData, onDisconnect: handleDisconnect })
+    setCallbacks({ onConnected: handleConnected, onData: handleData, onDisconnect: handleDisconnect, onVoiceData: handleVoiceData })
     try {
       const code = await createRoom()
       setRoomCode(code)
@@ -66,7 +75,7 @@ export default function MultiplayerLobby({ playerName, selectedCharacter, onRead
     if (!joinInput.trim()) return
     isHostRef.current = false
     setView('joining')
-    setCallbacks({ onConnected: handleConnected, onData: handleData, onDisconnect: handleDisconnect })
+    setCallbacks({ onConnected: handleConnected, onData: handleData, onDisconnect: handleDisconnect, onVoiceData: handleVoiceData })
     try {
       await joinRoom(joinInput.trim())
     } catch (err) {
