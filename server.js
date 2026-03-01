@@ -8,11 +8,16 @@ const io = new Server({
 });
 
 io.on("connection", (socket) => {
-    // A host creates a room (they join using their own socket.id as the room code)
+    // A host creates a room
     socket.on("create-room", (callback) => {
-        socket.join(socket.id);
-        console.log(`[Host] Created room: ${socket.id}`);
-        callback({ roomId: socket.id });
+        // Generate a clean explicit 6-character room code instead of relying on the Host's raw socket.id.
+        // Broadcasting to a socket's own auto-assigned ID can drop packets in CloudFront/EB environments
+        const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+        socket.join(roomId);
+        socket.roomId = roomId; // Store proper reference
+        console.log(`[Host] Created room: ${roomId}`);
+        callback({ roomId });
     });
 
     // A guest joins an existing room
@@ -33,13 +38,17 @@ io.on("connection", (socket) => {
 
     // Relay generic game data to everyone else in the room
     socket.on("game-data", (data) => {
-        const targetRoom = socket.roomId || socket.id;
-        socket.to(targetRoom).emit("game-data", data);
+        if (socket.roomId) {
+            // Because roomId is an explicit shared string and not the Host's raw socket.id, 
+            // the broadcast correctly sends to everyone in the room except the sender
+            socket.to(socket.roomId).emit("game-data", data);
+        }
     });
 
     socket.on("disconnect", () => {
-        const targetRoom = socket.roomId || socket.id;
-        socket.to(targetRoom).emit("peer-disconnected");
+        if (socket.roomId) {
+            socket.to(socket.roomId).emit("peer-disconnected");
+        }
         console.log(`[Disconnect] Socket left: ${socket.id}`);
     });
 });
