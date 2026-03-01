@@ -10,10 +10,12 @@ export default function MultiplayerLobby({ playerName, selectedCharacter, onRead
   const opponentInitRef = useRef(null)
   const connectedRef = useRef(false)
   const isHostRef = useRef(false)
+  const duelStartedRef = useRef(false)
 
-  // Cleanup on unmount
+  // Only close the connection if we never actually started a duel.
+  // If onReady was called, the connection must stay alive for the duel scene.
   useEffect(() => {
-    return () => closeMultiplayer()
+    return () => { if (!duelStartedRef.current) closeMultiplayer() }
   }, [])
 
   function handleConnected() {
@@ -23,6 +25,7 @@ export default function MultiplayerLobby({ playerName, selectedCharacter, onRead
     // If we already received their init before sending ours, call onReady
     if (opponentInitRef.current) {
       const { character, name } = opponentInitRef.current
+      duelStartedRef.current = true
       onReady(character, name, isHostRef.current)
     } else {
       setView('waiting')
@@ -34,6 +37,7 @@ export default function MultiplayerLobby({ playerName, selectedCharacter, onRead
       opponentInitRef.current = msg
       // Use ref instead of stale view state — avoids closure capture bug
       if (connectedRef.current) {
+        duelStartedRef.current = true
         onReady(msg.character, msg.name, isHostRef.current)
       }
     }
@@ -87,6 +91,7 @@ export default function MultiplayerLobby({ playerName, selectedCharacter, onRead
     opponentInitRef.current = null
     connectedRef.current = false
     isHostRef.current = false
+    duelStartedRef.current = false
   }
 
   return (
