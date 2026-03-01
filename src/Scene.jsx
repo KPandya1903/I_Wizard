@@ -22,6 +22,7 @@ export default function Scene({
   duelOpponent,
   duelKey,
   mpOpponentCharacter,
+  mpIsHost,
   mpSendData,
   mpOnRegisterReceiver,
 }) {
@@ -107,6 +108,7 @@ export default function Scene({
         <DuelSceneMultiplayer
           selectedCharacter={selectedCharacter}
           opponentCharacter={mpOpponentCharacter || 'aj'}
+          isHost={mpIsHost}
           sendData={mpSendData}
           onRegisterReceiver={mpOnRegisterReceiver}
         />

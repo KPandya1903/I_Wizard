@@ -26,7 +26,7 @@ export default function App() {
   const [challengedNPCs, setChallengedNPCs] = useState({})
 
   // Multiplayer state
-  const [mpOpponent, setMpOpponent] = useState({ character: 'aj', name: 'Opponent' })
+  const [mpOpponent, setMpOpponent] = useState({ character: 'aj', name: 'Opponent', isHost: true })
   const mpReceiverRef = useRef(null) // DuelSceneMultiplayer registers its receive fn here
 
   // ── Landing / hall handlers ──────────────────────────────────────────────
@@ -76,8 +76,8 @@ export default function App() {
 
   // ── Multiplayer handlers ─────────────────────────────────────────────────
 
-  const handleMultiplayerReady = useCallback((oppChar, oppName) => {
-    setMpOpponent({ character: oppChar || 'aj', name: oppName || 'Opponent' })
+  const handleMultiplayerReady = useCallback((oppChar, oppName, isHost) => {
+    setMpOpponent({ character: oppChar || 'aj', name: oppName || 'Opponent', isHost: !!isHost })
     // Set up callbacks now so network messages route to the active scene
     setCallbacks({
       onConnected: () => { },
@@ -222,6 +222,7 @@ export default function App() {
           duelOpponent={duelOpponent}
           duelKey={duelKey}
           mpOpponentCharacter={mpOpponent.character}
+          mpIsHost={mpOpponent.isHost}
           mpSendData={handleMpSend}
           mpOnRegisterReceiver={handleRegisterMpReceiver}
         />

@@ -137,7 +137,12 @@ function HitBurst({ id, position, color, onDone }) {
 }
 
 // ── Main multiplayer scene ────────────────────────────────────────────────
-export default function DuelSceneMultiplayer({ selectedCharacter, opponentCharacter, sendData, onRegisterReceiver }) {
+export default function DuelSceneMultiplayer({ selectedCharacter, opponentCharacter, isHost, sendData, onRegisterReceiver }) {
+  // Host starts at z=+8 (far side), guest starts at z=-8 (near side)
+  // Without this, both players share the same starting position and aim at themselves
+  const myStartZ = isHost ? 8 : -8
+  const opStartZ = isHost ? -8 : 8
+
   const playerHeight = CHARACTER_CONFIGS[selectedCharacter]?.height || 1.8
   const opponentHeight = CHARACTER_CONFIGS[opponentCharacter]?.height || 1.8
 
@@ -152,8 +157,8 @@ export default function DuelSceneMultiplayer({ selectedCharacter, opponentCharac
 
   const playerGroupRef = useRef()
   const opponentGroupRef = useRef()
-  const playerPosRef = useRef(new THREE.Vector3(0, 0, 8))
-  const opponentPosRef = useRef(new THREE.Vector3(0, 0, -8))
+  const playerPosRef = useRef(new THREE.Vector3(0, 0, myStartZ))
+  const opponentPosRef = useRef(new THREE.Vector3(0, 0, opStartZ))
   const playerVelocityYRef = useRef(0)
   const playerGroundedRef = useRef(true)
   const cooldownsRef = useRef({ q: 0, e: 0, r: 0, f: 0 })
@@ -467,7 +472,7 @@ export default function DuelSceneMultiplayer({ selectedCharacter, opponentCharac
       <DuelArena />
 
       {/* Local player */}
-      <group ref={playerGroupRef} position={[0, 0, 8]}>
+      <group ref={playerGroupRef} position={[0, 0, myStartZ]}>
         <GameCharacter
           targetHeight={playerHeight}
           character={selectedCharacter}
@@ -487,7 +492,7 @@ export default function DuelSceneMultiplayer({ selectedCharacter, opponentCharac
       </group>
 
       {/* Remote opponent */}
-      <group ref={opponentGroupRef} position={[0, 0, -8]}>
+      <group ref={opponentGroupRef} position={[0, 0, opStartZ]}>
         <GameCharacter
           targetHeight={opponentHeight}
           character={opponentCharacter}

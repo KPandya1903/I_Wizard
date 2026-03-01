@@ -9,6 +9,7 @@ export default function MultiplayerLobby({ playerName, selectedCharacter, onRead
   const [copied, setCopied] = useState(false)
   const opponentInitRef = useRef(null)
   const connectedRef = useRef(false)
+  const isHostRef = useRef(false)
 
   // Cleanup on unmount
   useEffect(() => {
@@ -22,7 +23,7 @@ export default function MultiplayerLobby({ playerName, selectedCharacter, onRead
     // If we already received their init before sending ours, call onReady
     if (opponentInitRef.current) {
       const { character, name } = opponentInitRef.current
-      onReady(character, name)
+      onReady(character, name, isHostRef.current)
     } else {
       setView('waiting')
     }
@@ -33,7 +34,7 @@ export default function MultiplayerLobby({ playerName, selectedCharacter, onRead
       opponentInitRef.current = msg
       // Use ref instead of stale view state — avoids closure capture bug
       if (connectedRef.current) {
-        onReady(msg.character, msg.name)
+        onReady(msg.character, msg.name, isHostRef.current)
       }
     }
   }
@@ -45,6 +46,7 @@ export default function MultiplayerLobby({ playerName, selectedCharacter, onRead
   }
 
   async function handleCreateRoom() {
+    isHostRef.current = true
     setView('hosting')
     setCallbacks({ onConnected: handleConnected, onData: handleData, onDisconnect: handleDisconnect })
     try {
@@ -58,6 +60,7 @@ export default function MultiplayerLobby({ playerName, selectedCharacter, onRead
 
   async function handleJoinRoom() {
     if (!joinInput.trim()) return
+    isHostRef.current = false
     setView('joining')
     setCallbacks({ onConnected: handleConnected, onData: handleData, onDisconnect: handleDisconnect })
     try {
@@ -83,6 +86,7 @@ export default function MultiplayerLobby({ playerName, selectedCharacter, onRead
     setErrorMsg('')
     opponentInitRef.current = null
     connectedRef.current = false
+    isHostRef.current = false
   }
 
   return (
