@@ -1,7 +1,7 @@
 import { io } from 'socket.io-client'
 
 // Hosted proxy WebSocket server (replace with a real server URL in production)
-const SOCKET_SERVER_URL = "http://hp-duel-env.eba-ietmmc4r.us-east-1.elasticbeanstalk.com" // AWS Elastic Beanstalk Node backend
+const SOCKET_SERVER_URL = "https://durhhhntj24zi.cloudfront.net" // Secure AWS CloudFront SSL Proxy
 
 let socket = null
 let onDataCallback = null
