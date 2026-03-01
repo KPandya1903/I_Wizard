@@ -34,7 +34,7 @@ export const LEVEL_CONFIGS = {
   3: {
     label: 'The Dark Lord',
     opponentMaxHP: 200,
-    heightScale: 3.0,
+    heightScale: 2.0,
     damageMult: 1.8,
     incomingDamageMult: 1.5,
     aiSpeed: 7,

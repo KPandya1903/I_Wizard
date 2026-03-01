@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { PLAYER_GROUP_PROXIMITY } from '../data/groupConfig'
 import { npcPositions } from '../lib/npcStore'
 
-const DUEL_PROXIMITY = 4
+const DUEL_PROXIMITY = 8
 const NPC_COLLISION_RADIUS = 1.1
 
 const WALK_SPEED = 8

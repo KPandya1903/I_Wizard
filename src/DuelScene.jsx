@@ -225,6 +225,8 @@ export default function DuelScene({ selectedCharacter, opponent }) {
     wandRotZ: { value: 0, min: -Math.PI, max: Math.PI, step: 0.05 },
   })
 
+  const levelConfigRef = useRef(levelConfig)
+
   const playerGroupRef = useRef()
   const opponentGroupRef = useRef()
   const playerPosRef = useRef(new THREE.Vector3(0, 0, 8))
@@ -259,7 +261,7 @@ export default function DuelScene({ selectedCharacter, opponent }) {
   // Reset on mount — also stop any ongoing NPC speech
   useEffect(() => {
     stopSpeaking()
-    const lc = levelConfigRef.current
+    const lc = levelConfig
     duelState.playerHP = 100
     duelState.opponentHP = lc.opponentMaxHP
     duelState.opponentMaxHP = lc.opponentMaxHP
@@ -473,6 +475,8 @@ export default function DuelScene({ selectedCharacter, opponent }) {
 
   // Per-frame update
   useFrame((_, delta) => {
+    levelConfigRef.current = LEVEL_CONFIGS[duelState.currentLevel] || LEVEL_CONFIGS[1]
+
     // ── Handle Match End Delay ──
     if (winTimerRef.current > 0) {
       winTimerRef.current -= delta

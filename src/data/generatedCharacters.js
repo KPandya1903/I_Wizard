@@ -42,9 +42,9 @@ export const GENERATED_NPC_PLACEMENTS = {
     "position": [
       0,
       0,
-      37
+      -37
     ],
-    "rotation": 3.14
+    "rotation": 0
   }
 }
 
@@ -61,9 +61,9 @@ export const GENERATED_NPC_GROUPS = {
   },
   "group_2": {
     "meetingPoint": [
-      -5,
       0,
-      0
+      0,
+      -37
     ],
     "members": [
       "villian"
