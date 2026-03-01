@@ -44,6 +44,7 @@ const SpeechRecognition =
 
 const ARENA_RADIUS = 18
 const WALK_SPEED = 5
+const RUN_SPEED = 10
 const HAND_Y = 1.05
 const CAM_HEIGHT = 2.5
 const CAM_DIST = 3.5
@@ -167,6 +168,9 @@ export default function DuelSceneMultiplayer({ selectedCharacter, opponentCharac
   const opponentHPRef = useRef(100)
   const gameResultRef = useRef(null)
   const playerShieldRef = useRef(0)
+  const opponentShieldRef = useRef(0)
+  const playerShieldMeshRef = useRef()
+  const opponentShieldMeshRef = useRef()
   const winTimerRef = useRef(0)
   const frameCounterRef = useRef(0)
   const resultSentRef = useRef(false)
@@ -209,17 +213,21 @@ export default function DuelSceneMultiplayer({ selectedCharacter, opponentCharac
         const def = SPELL_DEFS_MP[msg.spellKey]
         if (def) {
           setOpponentCastTrigger(Date.now())
-          setOpponentSpells(prev => [...prev, {
-            id: msg.id,
-            origin: msg.origin,
-            dirArr: msg.dirArr,
-            caster: 'opponent',
-            damage: def.damage,
-            color: def.color,
-            lightColor: def.lightColor,
-            speed: def.speed,
-            size: def.size,
-          }])
+          if (def.isShield) {
+            opponentShieldRef.current = def.duration
+          } else {
+            setOpponentSpells(prev => [...prev, {
+              id: msg.id,
+              origin: msg.origin,
+              dirArr: msg.dirArr,
+              caster: 'opponent',
+              damage: def.damage,
+              color: def.color,
+              lightColor: def.lightColor,
+              speed: def.speed,
+              size: def.size,
+            }])
+          }
         }
       } else if (msg.type === 'hit') {
         // Opponent says their spell hit us — apply damage
@@ -313,6 +321,7 @@ export default function DuelSceneMultiplayer({ selectedCharacter, opponentCharac
   // Cast spells (local player)
   const castPlayerSpell = useCallback((key) => {
     if (gameResultRef.current || cooldownsRef.current[key] > 0) return
+    if (playerShieldRef.current > 0) return // Cannot cast any spells while shield is active
     const def = SPELL_DEFS_MP[key]
     if (!def) return
     cooldownsRef.current[key] = def.cooldown
@@ -356,17 +365,18 @@ export default function DuelSceneMultiplayer({ selectedCharacter, opponentCharac
         const gesture = handState.gesture
         const spellKey = GESTURE_SPELL[gesture]
         if (gesture === 'fist') {
-          if (cooldownsRef.current.f <= 0) {
-            playerShieldRef.current = 0.5
-            if (lastGestureRef.current !== 'fist') setPlayerCastTrigger(Date.now())
+          if (cooldownsRef.current.f <= 0 && playerShieldRef.current <= 0) {
+            castPlayerSpell('f')
+            gestureCooldownRef.current = Date.now() + 1000
           }
         } else if (spellKey && gesture !== lastGestureRef.current && Date.now() > gestureCooldownRef.current) {
-          castPlayerSpell(spellKey)
+          if (playerShieldRef.current <= 0) {
+            castPlayerSpell(spellKey)
+          }
           gestureCooldownRef.current = Date.now() + 1000
         }
         lastGestureRef.current = gesture
       } else {
-        if (lastGestureRef.current === 'fist') cooldownsRef.current.f = SPELL_DEFS_MP.f.cooldown
         lastGestureRef.current = null
       }
       frameId = requestAnimationFrame(checkGesture)
@@ -455,17 +465,21 @@ export default function DuelSceneMultiplayer({ selectedCharacter, opponentCharac
     if (caster === 'player') {
       setPlayerSpells(prev => prev.filter(s => s.id !== id))
       if (isHit && !gameResultRef.current && winTimerRef.current <= 0) {
-        // Notify opponent that our spell hit them
-        sendData?.({ type: 'hit', damage })
-        // Update local opponent HP for display
-        opponentHPRef.current = Math.max(0, opponentHPRef.current - damage)
-        duelState.opponentHP = opponentHPRef.current
-        if (opponentHPRef.current <= 0 && !resultSentRef.current) {
-          resultSentRef.current = true
-          setOpponentAnimState('dying')
-          winTimerRef.current = 3.0
-          gameResultRef.current = 'win'
-          sendData?.({ type: 'result', winner: 'player' })
+        if (opponentShieldRef.current > 0) {
+          // Blocked visually by opponent's active shield 
+        } else {
+          // Notify opponent that our spell hit them
+          sendData?.({ type: 'hit', damage })
+          // Update local opponent HP for display
+          opponentHPRef.current = Math.max(0, opponentHPRef.current - damage)
+          duelState.opponentHP = opponentHPRef.current
+          if (opponentHPRef.current <= 0 && !resultSentRef.current) {
+            resultSentRef.current = true
+            setOpponentAnimState('dying')
+            winTimerRef.current = 3.0
+            gameResultRef.current = 'win'
+            sendData?.({ type: 'result', winner: 'player' })
+          }
         }
       }
     } else {
@@ -494,12 +508,16 @@ export default function DuelSceneMultiplayer({ selectedCharacter, opponentCharac
 
     // Player movement
     const pp = playerPosRef.current
+    const isRunning = duelKeys['ShiftLeft'] || duelKeys['ShiftRight']
+    const speed = isRunning ? RUN_SPEED : WALK_SPEED
+
     const mv = duelKeys['KeyW'] || duelKeys['KeyS'] || duelKeys['KeyA'] || duelKeys['KeyD'] ||
       duelKeys['ArrowUp'] || duelKeys['ArrowDown'] || duelKeys['ArrowLeft'] || duelKeys['ArrowRight']
-    if (duelKeys['KeyW'] || duelKeys['ArrowUp']) pp.z -= WALK_SPEED * delta
-    if (duelKeys['KeyS'] || duelKeys['ArrowDown']) pp.z += WALK_SPEED * delta
-    if (duelKeys['KeyA'] || duelKeys['ArrowLeft']) pp.x -= WALK_SPEED * delta
-    if (duelKeys['KeyD'] || duelKeys['ArrowRight']) pp.x += WALK_SPEED * delta
+
+    if (duelKeys['KeyW'] || duelKeys['ArrowUp']) pp.z -= speed * delta
+    if (duelKeys['KeyS'] || duelKeys['ArrowDown']) pp.z += speed * delta
+    if (duelKeys['KeyA'] || duelKeys['ArrowLeft']) pp.x -= speed * delta
+    if (duelKeys['KeyD'] || duelKeys['ArrowRight']) pp.x += speed * delta
     const pr = Math.sqrt(pp.x * pp.x + pp.z * pp.z)
     if (pr > ARENA_RADIUS) { pp.x *= ARENA_RADIUS / pr; pp.z *= ARENA_RADIUS / pr }
 
@@ -520,11 +538,23 @@ export default function DuelSceneMultiplayer({ selectedCharacter, opponentCharac
 
     let pAnim = 'idle'
     if (!playerGroundedRef.current) pAnim = 'jump'
-    else if (mv) pAnim = 'walk'
+    else if (mv) pAnim = isRunning ? 'run' : 'walk'
     setPlayerAnimState(pAnim)
 
-    // Shield duration
-    if (playerShieldRef.current > 0) playerShieldRef.current -= delta
+    // Shield duration & visibility via refs to avoid re-renders
+    if (playerShieldRef.current > 0) {
+      playerShieldRef.current -= delta
+      if (playerShieldMeshRef.current) playerShieldMeshRef.current.visible = true
+    } else if (playerShieldMeshRef.current) {
+      playerShieldMeshRef.current.visible = false
+    }
+
+    if (opponentShieldRef.current > 0) {
+      opponentShieldRef.current -= delta
+      if (opponentShieldMeshRef.current) opponentShieldMeshRef.current.visible = true
+    } else if (opponentShieldMeshRef.current) {
+      opponentShieldMeshRef.current.visible = false
+    }
 
     // Apply received opponent position to mesh
     if (opponentGroupRef.current) {
@@ -562,15 +592,13 @@ export default function DuelSceneMultiplayer({ selectedCharacter, opponentCharac
           castTrigger={playerCastTrigger}
           wandElement={<DuelWand position={[wandPosX, wandPosY, wandPosZ]} rotation={[wandRotX, wandRotY, wandRotZ]} />}
         />
-        {playerShieldRef.current > 0 && (
-          <mesh position={[0, playerHeight / 2, -1]}>
-            <cylinderGeometry args={[1.5, 1.5, playerHeight * 1.2, 32, 1, true, -Math.PI / 4, Math.PI / 2]} />
-            <meshStandardMaterial
-              color="#aaaaff" emissive="#3366ff" emissiveIntensity={2}
-              transparent opacity={0.4} depthWrite={false} side={2} wireframe
-            />
-          </mesh>
-        )}
+        <mesh ref={playerShieldMeshRef} visible={false} position={[0, playerHeight / 2, -1]}>
+          <cylinderGeometry args={[1.5, 1.5, playerHeight * 1.2, 32, 1, true, -Math.PI / 4, Math.PI / 2]} />
+          <meshStandardMaterial
+            color="#aaaaff" emissive="#3366ff" emissiveIntensity={2}
+            transparent opacity={0.4} depthWrite={false} side={2} wireframe
+          />
+        </mesh>
       </group>
 
       {/* Remote opponent */}
@@ -582,6 +610,13 @@ export default function DuelSceneMultiplayer({ selectedCharacter, opponentCharac
           castTrigger={opponentCastTrigger}
           wandElement={<DuelWand position={[wandPosX, wandPosY, wandPosZ]} rotation={[wandRotX, wandRotY, wandRotZ]} />}
         />
+        <mesh ref={opponentShieldMeshRef} visible={false} position={[0, opponentHeight / 2, -1]}>
+          <cylinderGeometry args={[1.5, 1.5, opponentHeight * 1.2, 32, 1, true, -Math.PI / 4, Math.PI / 2]} />
+          <meshStandardMaterial
+            color="#aaaaff" emissive="#3366ff" emissiveIntensity={2}
+            transparent opacity={0.4} depthWrite={false} side={2} wireframe
+          />
+        </mesh>
       </group>
 
       {/* Active spells */}

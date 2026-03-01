@@ -71,7 +71,7 @@ export const SPELL_DEFS = {
 
 const ARENA_RADIUS = 18
 const WALK_SPEED = 5
-const AI_SPEED = 6
+const AI_SPEED = 8
 const HAND_Y = 1.05
 const CAM_HEIGHT = 2.5
 const CAM_DIST = 3.5 // close third-person
@@ -230,10 +230,13 @@ export default function DuelScene({ selectedCharacter, opponent }) {
   const playerPosRef = useRef(new THREE.Vector3(0, 0, 8))
   const opponentPosRef = useRef(new THREE.Vector3(0, 0, -8))
   const opponentTargetRef = useRef(new THREE.Vector3(0, 0, -8))
-  const targetTimerRef = useRef(2)
-  const aiCooldownRef = useRef(levelConfig.aiAttackMin + Math.random() * (levelConfig.aiAttackMax - levelConfig.aiAttackMin))
+  const targetTimerRef = useRef(1)
+  const aiCooldownRef = useRef(levelConfig.aiAttackMin + Math.random() * (levelConfig.aiAttackMax - levelConfig.aiAttackMin) + 2) // Added base delay to attacks
+  const aiShieldCdRef = useRef(5 + Math.random() * 5)
+  const opponentShieldRef = useRef(0)
+  const opponentShieldMeshRef = useRef()
   const tauntTimerRef = useRef(5 + Math.random() * 5)
-  const aiJumpTimerRef = useRef(3 + Math.random() * 4)
+  const aiJumpTimerRef = useRef(1 + Math.random() * 3) // Jumps more frequently
   const aiVelocityYRef = useRef(0)
   const aiGroundedRef = useRef(true)
   const playerVelocityYRef = useRef(0)
@@ -266,6 +269,7 @@ export default function DuelScene({ selectedCharacter, opponent }) {
     opponentHPRef.current = lc.opponentMaxHP
     gameResultRef.current = null
     playerShieldRef.current = 0
+    opponentShieldRef.current = 0
 
     // Greet the player with a taunt at the start
     const greeting = lc.taunts[Math.floor(Math.random() * lc.taunts.length)]
@@ -321,9 +325,13 @@ export default function DuelScene({ selectedCharacter, opponent }) {
     const origin = [op.x - 0.3, HAND_Y, op.z]
     const dir = new THREE.Vector3(pp.x - origin[0], 0, pp.z - origin[2]).normalize().toArray()
 
-    speakAsOpponent(def.name + '!') // fire-and-forget
+    if (def.isShield) {
+      opponentShieldRef.current = def.duration
+    } else {
+      speakAsOpponent(def.name + '!') // fire-and-forget
+      setOpponentSpells(prev => [...prev, { id: Date.now() + Math.random(), origin, dirArr: dir, caster: 'opponent', ...def }])
+    }
     setOpponentCastTrigger(Date.now())
-    setOpponentSpells(prev => [...prev, { id: Date.now() + Math.random(), origin, dirArr: dir, caster: 'opponent', ...def }])
   }, [])
 
   // E / R / F keys
@@ -517,10 +525,17 @@ export default function DuelScene({ selectedCharacter, opponent }) {
       playerShieldRef.current -= delta
     }
 
+    if (opponentShieldRef.current > 0) {
+      opponentShieldRef.current -= delta
+      if (opponentShieldMeshRef.current) opponentShieldMeshRef.current.visible = true
+    } else if (opponentShieldMeshRef.current) {
+      opponentShieldMeshRef.current.visible = false
+    }
+
     // ── AI movement ──
     targetTimerRef.current -= delta
     if (targetTimerRef.current <= 0) {
-      targetTimerRef.current = 1 + Math.random() * 2
+      targetTimerRef.current = 0.5 + Math.random() * 1.5 // Move much more frequently
       // Mix between strafing around player and random positions
       if (Math.random() < 0.4) {
         // Strafe: pick a point roughly same distance from player but at an angle
@@ -575,9 +590,23 @@ export default function DuelScene({ selectedCharacter, opponent }) {
 
     // ── AI attack ──
     aiCooldownRef.current -= delta
+    aiShieldCdRef.current -= delta
+
+    if (aiShieldCdRef.current <= 0 && !gameResultRef.current && Math.random() > 0.6) {
+      // Occasional shield cast
+      aiShieldCdRef.current = 8 + Math.random() * 10
+      const pp = playerPosRef.current
+      const op = opponentPosRef.current
+      const dir = new THREE.Vector3(pp.x - op.x, 0, pp.z - op.z).normalize().toArray()
+      opponentShieldRef.current = SPELL_DEFS.f.duration
+      setOpponentCastTrigger(Date.now())
+      speakAsOpponent('Protego!')
+    }
+
     if (aiCooldownRef.current <= 0 && !gameResultRef.current) {
       const lc = levelConfigRef.current
-      aiCooldownRef.current = lc.aiAttackMin + Math.random() * (lc.aiAttackMax - lc.aiAttackMin)
+      // Attack slower: add 2-4 seconds base minimum between every attack
+      aiCooldownRef.current = lc.aiAttackMin + Math.random() * (lc.aiAttackMax - lc.aiAttackMin) + 2.0 + Math.random() * 2.0
       castOpponentSpell()
     }
 
@@ -645,6 +674,19 @@ export default function DuelScene({ selectedCharacter, opponent }) {
           level={duelState.currentLevel}
           opponentHeight={(CHARACTER_CONFIGS[opponent]?.height || 1.8) * levelConfig.heightScale}
         />
+        <mesh ref={opponentShieldMeshRef} visible={false} position={[0, playerHeight / 2, -1]} rotation={[0, 0, 0]}>
+          <cylinderGeometry args={[1.5, 1.5, playerHeight * 1.2, 32, 1, true, -Math.PI / 4, Math.PI / 2]} />
+          <meshStandardMaterial
+            color="#aaaaff"
+            emissive="#3366ff"
+            emissiveIntensity={2}
+            transparent
+            opacity={0.4}
+            depthWrite={false}
+            side={THREE.DoubleSide}
+            wireframe={true}
+          />
+        </mesh>
       </group>
 
       {/* Active spells */}
