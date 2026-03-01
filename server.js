@@ -45,6 +45,13 @@ io.on("connection", (socket) => {
         }
     });
 
+    // Relay real-time microphone chunks
+    socket.on("voice-data", (audioBlob) => {
+        if (socket.roomId) {
+            socket.to(socket.roomId).emit("voice-data", audioBlob);
+        }
+    });
+
     socket.on("disconnect", () => {
         if (socket.roomId) {
             socket.to(socket.roomId).emit("peer-disconnected");
