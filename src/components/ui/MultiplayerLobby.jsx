@@ -40,7 +40,8 @@ export default function MultiplayerLobby({ playerName, selectedCharacter, onRead
 
   function handleDisconnect() {
     setView('error')
-    setErrorMsg('Opponent disconnected.')
+    // If we never connected, it's a timeout; otherwise opponent left
+    setErrorMsg(connectedRef.current ? 'Opponent disconnected.' : 'Connection timed out. Check room code and try again.')
   }
 
   async function handleCreateRoom() {
