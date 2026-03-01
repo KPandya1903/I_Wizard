@@ -255,7 +255,7 @@ export default function App() {
           mpSendData={handleMpSend}
           mpOnRegisterReceiver={handleRegisterMpReceiver}
         />
-        <DuelHUD opponent={mpOpponent.character} onExit={handleMultiplayerExit} />
+        <DuelHUD opponent={mpOpponent.character} onExit={handleMultiplayerExit} playerName={playerName} opponentName={mpOpponent.name} />
         <HandCamOverlay />
       </>
     )
@@ -293,7 +293,7 @@ export default function App() {
       {/* Single-player duel overlays */}
       {screen === 'duel' && duelOpponent && (
         <>
-          <DuelHUD opponent={duelOpponent} onExit={handleExitDuel} onNextLevel={handleNextLevel} />
+          <DuelHUD opponent={duelOpponent} onExit={handleExitDuel} onNextLevel={handleNextLevel} playerName={playerName} />
           <HandCamOverlay />
         </>
       )}

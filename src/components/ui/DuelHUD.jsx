@@ -91,9 +91,9 @@ const CSS = `
 const LEVEL_LABELS = { 1: 'The Apprentice', 2: 'The Dark Wizard', 3: 'The Dark Lord' }
 const LEVEL_COLORS = { 1: '#c9a533', 2: '#ff6633', 3: '#cc44ff' }
 
-export default function DuelHUD({ opponent, onExit, onNextLevel }) {
+export default function DuelHUD({ opponent, onExit, onNextLevel, playerName, opponentName }) {
   const config = CHARACTER_CONFIGS[opponent]
-  const name = config?.displayName || opponent
+  const name = opponentName || config?.displayName || opponent
 
   const [playerHP, setPlayerHP] = useState(100)
   const [opponentHP, setOpponentHP] = useState(100)
@@ -128,7 +128,7 @@ export default function DuelHUD({ opponent, onExit, onNextLevel }) {
         {/* Player HP panel */}
         <div style={s.hpPanel}>
           <div style={s.hpHeader}>
-            <span style={s.fighterTag}>⚡ YOU</span>
+            <span style={s.fighterTag}>⚡ {playerName ? playerName.toUpperCase() : 'YOU'}</span>
             <span style={{ ...s.hpNum, color: hpColor(playerHP) }}>{Math.max(0, Math.round(playerHP))}</span>
           </div>
           <div style={s.hpTrack}>
