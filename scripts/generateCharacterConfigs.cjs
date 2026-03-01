@@ -98,7 +98,7 @@ function generateConfigs() {
 
     configs[key] = {
       displayName: dir,
-      modelPath: `${basePath}/Idle.fbx`,
+      modelPath: `${basePath}/${idleFile}`,
       playerAnims,
       height,
       systemPrompt: `You are ${dir}, a wizard at Hogwarts. Be friendly and talk about magic. Keep responses to 1-2 sentences.`,

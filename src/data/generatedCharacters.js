@@ -17,7 +17,7 @@ export const GENERATED_CHARACTERS = {
   },
   "villian": {
     "displayName": "Villian",
-    "modelPath": "/models/Charecters/Villian/Idle.fbx",
+    "modelPath": "/models/Charecters/Villian/Warrior Idle.fbx",
     "playerAnims": {
       "idle": "/models/Charecters/Villian/Warrior Idle.fbx",
       "run": "/models/Charecters/Villian/Running.fbx",
@@ -32,19 +32,19 @@ export const GENERATED_CHARACTERS = {
 export const GENERATED_NPC_PLACEMENTS = {
   "aj": {
     "position": [
-      -3.7,
+      -8.5,
       0,
       -49
     ],
-    "rotation": -0.71
+    "rotation": 1.69
   },
   "villian": {
     "position": [
-      10.9,
+      8.6,
       0,
       49
     ],
-    "rotation": 0.97
+    "rotation": 1.52
   }
 }
 
