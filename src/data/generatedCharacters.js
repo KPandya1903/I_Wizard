@@ -42,7 +42,7 @@ export const GENERATED_NPC_PLACEMENTS = {
     "position": [
       0,
       0,
-      49
+      37
     ],
     "rotation": 3.14
   }
