@@ -1,25 +1,12 @@
-// PeerJS-based WebRTC P2P connection for 1v1 multiplayer duel
-import Peer from 'peerjs'
+import { io } from 'socket.io-client'
 
-const ICE_CONFIG = {
-  config: {
-    iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
-      // Free TURN servers — required for cross-network / strict-NAT play
-      { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-      { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-      { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
-    ],
-  },
-}
+// Hosted proxy WebSocket server (replace with a real server URL in production)
+const SOCKET_SERVER_URL = "http://hp-duel-env.eba-ietmmc4r.us-east-1.elasticbeanstalk.com" // AWS Elastic Beanstalk Node backend
 
-let peer = null
-let conn = null
+let socket = null
 let onDataCallback = null
 let onDisconnectCallback = null
 let onConnectedCallback = null
-let connectTimeoutId = null
 
 export function setCallbacks({ onConnected, onData, onDisconnect }) {
   onConnectedCallback = onConnected
@@ -28,83 +15,93 @@ export function setCallbacks({ onConnected, onData, onDisconnect }) {
 }
 
 export function sendData(data) {
-  if (conn && conn.open) {
-    conn.send(data)
+  if (socket && socket.connected) {
+    socket.emit('game-data', data)
   }
 }
 
 export function closeMultiplayer() {
-  if (connectTimeoutId) { clearTimeout(connectTimeoutId); connectTimeoutId = null }
   onDataCallback = null
   onDisconnectCallback = null
   onConnectedCallback = null
-  try { conn?.close() } catch (_) { }
-  try { peer?.destroy() } catch (_) { }
-  conn = null
-  peer = null
+  if (socket) {
+    socket.disconnect()
+    socket = null
+  }
 }
 
-function attachConn(connection) {
-  conn = connection
-  let opened = false
-  const fireOpen = () => {
-    if (!opened) {
-      opened = true
-      if (connectTimeoutId) { clearTimeout(connectTimeoutId); connectTimeoutId = null }
-      console.log('[MP] DataChannel open — calling onConnectedCallback')
-      onConnectedCallback?.()
-    }
-  }
-
-  conn.on('data', (data) => {
-    if (data?.type !== 'pos') console.log('[MP] data received:', data?.type)
-    onDataCallback?.(data)
+function initSocketListeners(resolve, reject) {
+  socket.on('connect', () => {
+    console.log('[MP] Socket connected:', socket.id)
   })
-  conn.on('open', () => { console.log('[MP] conn open event'); fireOpen() })
-  conn.on('close', () => { console.log('[MP] conn closed'); onDisconnectCallback?.() })
-  conn.on('error', (err) => console.warn('[MP] conn error:', err))
 
-  // PeerJS race: 'open' may have already fired by the time we attach the handler
-  if (connection.open) {
-    console.log('[MP] connection already open')
-    setTimeout(fireOpen, 0)
-  }
+  socket.on('guest-joined', (guestId) => {
+    console.log('[MP] Guest joined room:', guestId)
+    if (onConnectedCallback) onConnectedCallback()
+  })
+
+  socket.on('game-data', (data) => {
+    if (onDataCallback) onDataCallback(data)
+  })
+
+  socket.on('peer-disconnected', () => {
+    console.log('[MP] Peer disconnected')
+    if (onDisconnectCallback) onDisconnectCallback()
+  })
+
+  socket.on('disconnect', () => {
+    console.log('[MP] Socket disconnected')
+    if (onDisconnectCallback) onDisconnectCallback()
+  })
 }
 
-// Host: creates a room and returns the room code (peer ID)
+// Host: creates a room and returns the room code (socket ID)
 export function createRoom() {
   return new Promise((resolve, reject) => {
-    console.log('[MP] createRoom: creating peer...')
-    peer = new Peer(undefined, ICE_CONFIG)
-    peer.on('open', (id) => { console.log('[MP] host peer open, ID:', id); resolve(id) })
-    peer.on('connection', (connection) => {
-      console.log('[MP] incoming guest connection')
-      attachConn(connection)
+    console.log('[MP] createRoom: connecting to relay...')
+    socket = io(SOCKET_SERVER_URL)
+
+    initSocketListeners()
+
+    socket.on('connect', () => {
+      socket.emit('create-room', ({ roomId }) => {
+        console.log('[MP] Host room created, ID:', roomId)
+        resolve(roomId)
+      })
     })
-    peer.on('error', (err) => { console.error('[MP] peer error:', err); reject(err) })
+
+    socket.on('connect_error', (err) => {
+      console.error('[MP] Socket error:', err)
+      reject(err)
+    })
   })
 }
 
 // Guest: joins a room by code
 export function joinRoom(roomCode) {
   return new Promise((resolve, reject) => {
-    console.log('[MP] joinRoom: connecting to', roomCode)
-    peer = new Peer(undefined, ICE_CONFIG)
-    peer.on('open', (id) => {
-      console.log('[MP] guest peer open, ID:', id, '— calling peer.connect()')
-      const connection = peer.connect(roomCode.trim(), { reliable: true, serialization: 'json' })
-      attachConn(connection)
+    console.log('[MP] joinRoom: connecting to relay for room:', roomCode)
+    socket = io(SOCKET_SERVER_URL)
 
-      // Timeout: if DataChannel doesn't open within 25s, show error
-      connectTimeoutId = setTimeout(() => {
-        if (!conn?.open) {
-          console.warn('[MP] connection timed out after 25s')
-          onDisconnectCallback?.()
+    initSocketListeners()
+
+    socket.on('connect', () => {
+      socket.emit('join-room', roomCode.trim(), (response) => {
+        if (response.error) {
+          console.error('[MP] Join error:', response.error)
+          reject(new Error(response.error))
+        } else {
+          console.log('[MP] Guest successfully joined room')
+          if (onConnectedCallback) onConnectedCallback()
+          resolve()
         }
-      }, 25000)
-
-      resolve()
+      })
     })
-    peer.on('error', (err) => { console.error('[MP] peer error:', err); reject(err) })
+
+    socket.on('connect_error', (err) => {
+      console.error('[MP] Socket error:', err)
+      reject(err)
+    })
   })
 }
+
