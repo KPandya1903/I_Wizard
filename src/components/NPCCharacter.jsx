@@ -223,6 +223,8 @@ export default function NPCCharacter({
       }
     }
 
+    mixerRef.current?.update(delta)
+
     group.position.set(ai.pos.x, 0, ai.pos.z)
     group.rotation.set(0, ai.facing, 0)
   })
