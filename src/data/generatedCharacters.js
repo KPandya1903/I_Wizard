@@ -32,19 +32,19 @@ export const GENERATED_CHARACTERS = {
 export const GENERATED_NPC_PLACEMENTS = {
   "aj": {
     "position": [
-      -8.5,
+      -4.5,
       0,
       -49
     ],
-    "rotation": 1.69
+    "rotation": 0.25
   },
   "villian": {
     "position": [
-      8.6,
+      0,
       0,
       49
     ],
-    "rotation": 1.52
+    "rotation": 3.14
   }
 }
 

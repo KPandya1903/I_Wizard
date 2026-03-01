@@ -111,11 +111,20 @@ function generateConfigs() {
   const placements = {}
   const count = validKeys.length
   for (let i = 0; i < count; i++) {
+    const key = validKeys[i]
+    if (key === 'villian') {
+      placements[key] = {
+        position: [0, 0, 49],
+        rotation: 3.14, // Facing towards the entrance
+      }
+      continue
+    }
+
     const t = count > 1 ? i / (count - 1) : 0.5
     const z = HALL_Z[0] + t * (HALL_Z[1] - HALL_Z[0])
     const x = (i % 2 === 0 ? -1 : 1) * (3 + Math.random() * 8)
     const clampedX = Math.max(HALL_X[0], Math.min(HALL_X[1], x))
-    placements[validKeys[i]] = {
+    placements[key] = {
       position: [parseFloat(clampedX.toFixed(1)), 0, parseFloat(z.toFixed(1))],
       rotation: parseFloat((Math.random() * Math.PI * 2 - Math.PI).toFixed(2)),
     }
