@@ -8,6 +8,7 @@ export default function MultiplayerLobby({ playerName, selectedCharacter, onRead
   const [errorMsg, setErrorMsg] = useState('')
   const [copied, setCopied] = useState(false)
   const opponentInitRef = useRef(null)
+  const connectedRef = useRef(false)
 
   // Cleanup on unmount
   useEffect(() => {
@@ -15,6 +16,7 @@ export default function MultiplayerLobby({ playerName, selectedCharacter, onRead
   }, [])
 
   function handleConnected() {
+    connectedRef.current = true
     // Both sides: send init so each knows the other's character + name
     sendData({ type: 'init', character: selectedCharacter, name: playerName })
     // If we already received their init before sending ours, call onReady
@@ -29,8 +31,8 @@ export default function MultiplayerLobby({ playerName, selectedCharacter, onRead
   function handleData(msg) {
     if (msg.type === 'init') {
       opponentInitRef.current = msg
-      // If we're already connected and waiting, proceed
-      if (view === 'waiting' || view === 'hosting') {
+      // Use ref instead of stale view state — avoids closure capture bug
+      if (connectedRef.current) {
         onReady(msg.character, msg.name)
       }
     }
@@ -79,6 +81,7 @@ export default function MultiplayerLobby({ playerName, selectedCharacter, onRead
     setJoinInput('')
     setErrorMsg('')
     opponentInitRef.current = null
+    connectedRef.current = false
   }
 
   return (

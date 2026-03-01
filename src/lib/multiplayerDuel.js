@@ -40,10 +40,16 @@ export function closeMultiplayer() {
 
 function attachConn(connection) {
   conn = connection
+  let opened = false
+  const fireOpen = () => { if (!opened) { opened = true; onConnectedCallback?.() } }
+
   conn.on('data', (data) => onDataCallback?.(data))
-  conn.on('open', () => onConnectedCallback?.())
+  conn.on('open', fireOpen)
   conn.on('close', () => onDisconnectCallback?.())
   conn.on('error', (err) => console.warn('PeerJS conn error:', err))
+
+  // PeerJS race: 'open' may have already fired by the time we attach the handler
+  if (connection.open) setTimeout(fireOpen, 0)
 }
 
 // Host: creates a room and returns the room code (peer ID)
