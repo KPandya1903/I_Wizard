@@ -9,34 +9,72 @@ export const GENERATED_CHARACTERS = {
       "idle": "/models/Charecters/Aj/Idle.fbx",
       "walk": "/models/Charecters/Aj/Walking.fbx",
       "run": "/models/Charecters/Aj/Running.fbx",
-      "jump": "/models/Charecters/Aj/Jumping.fbx"
+      "jump": "/models/Charecters/Aj/Jumping.fbx",
+      "dying": "/models/Charecters/Aj/Dying.fbx"
     },
     "height": 1.8,
-    "systemPrompt": "You are Aj, a bold young wizard at Hogwarts. Be confident, competitive, and always ready for a duel. Keep responses to 1-2 sentences."
+    "systemPrompt": "You are Aj, a wizard at Hogwarts. Be friendly and talk about magic. Keep responses to 1-2 sentences."
   },
   "villian": {
-    "displayName": "Villain",
-    "modelPath": "/models/Charecters/Villian/Warrior Idle.fbx",
+    "displayName": "Villian",
+    "modelPath": "/models/Charecters/Villian/Idle.fbx",
     "playerAnims": {
       "idle": "/models/Charecters/Villian/Warrior Idle.fbx",
-      "walk": "/models/Charecters/Villian/Warrior Idle.fbx",
       "run": "/models/Charecters/Villian/Running.fbx",
       "jump": "/models/Charecters/Villian/Jumping.fbx",
       "dying": "/models/Charecters/Villian/Dying.fbx"
     },
-    "height": 5.6,
-    "systemPrompt": "You are a dark wizard Villain at Hogwarts. Be menacing, cold, and speak of dark magic. Keep responses to 1-2 sentences."
+    "height": 1.8,
+    "systemPrompt": "You are Villian, a wizard at Hogwarts. Be friendly and talk about magic. Keep responses to 1-2 sentences."
   }
 }
 
 export const GENERATED_NPC_PLACEMENTS = {
-  "aj": { "position": [-4.3, 0, 10], "rotation": 0.48 },
-  "villian": { "position": [0, 0, -32], "rotation": 3.14 }
+  "aj": {
+    "position": [
+      -3.7,
+      0,
+      -49
+    ],
+    "rotation": -0.71
+  },
+  "villian": {
+    "position": [
+      10.9,
+      0,
+      49
+    ],
+    "rotation": 0.97
+  }
 }
 
 export const GENERATED_NPC_GROUPS = {
   "group_1": {
-    "meetingPoint": [0, 0, -20],
-    "members": ["aj", "villian"]
+    "meetingPoint": [
+      5,
+      0,
+      -49
+    ],
+    "members": [
+      "aj"
+    ]
+  },
+  "group_2": {
+    "meetingPoint": [
+      -5,
+      0,
+      0
+    ],
+    "members": [
+      "villian"
+    ]
+  },
+  "group_3": {
+    "meetingPoint": [
+      5,
+      0,
+      49
+    ],
+    "members": []
   }
 }

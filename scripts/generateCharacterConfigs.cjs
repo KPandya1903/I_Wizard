@@ -24,6 +24,7 @@ const ANIM_MAP = {
   walk: ['Walking.fbx', 'Strut Walking.fbx', 'Mutant Walking.fbx'],
   run: ['Running.fbx', 'Slow Run.fbx'],
   jump: ['Jumping.fbx', 'Mutant Jumping.fbx', 'Jumping (1).fbx'],
+  dying: ['Dying.fbx'],
 }
 
 // Known height overrides
@@ -70,7 +71,9 @@ function generateConfigs() {
     const dirPath = path.join(CHARS_DIR, dir)
     const files = fs.readdirSync(dirPath).filter(f => f.endsWith('.fbx'))
 
-    if (!files.includes('Idle.fbx')) {
+    const idleFile = files.includes('Idle.fbx') ? 'Idle.fbx' : findAnim(files, ['Warrior Idle.fbx'])
+
+    if (!idleFile) {
       console.warn(`  [SKIP] ${dir} — no Idle.fbx`)
       continue
     }
@@ -81,13 +84,15 @@ function generateConfigs() {
     const walkFile = findAnim(files, ANIM_MAP.walk)
     const runFile = findAnim(files, ANIM_MAP.run)
     const jumpFile = findAnim(files, ANIM_MAP.jump)
+    const dyingFile = findAnim(files, ANIM_MAP.dying)
 
     const playerAnims = {
-      idle: `${basePath}/Idle.fbx`,
+      idle: `${basePath}/${idleFile}`,
     }
     if (walkFile) playerAnims.walk = `${basePath}/${walkFile}`
     if (runFile) playerAnims.run = `${basePath}/${runFile}`
     if (jumpFile) playerAnims.jump = `${basePath}/${jumpFile}`
+    if (dyingFile) playerAnims.dying = `${basePath}/${dyingFile}`
 
     const height = HEIGHT_OVERRIDES[dir] || 1.8
 
