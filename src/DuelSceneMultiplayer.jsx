@@ -383,7 +383,7 @@ export default function DuelSceneMultiplayer({ selectedCharacter, opponentCharac
     let recognizer = null
 
     const onKeyDown = (e) => {
-      if (e.code !== 'KeyV' || voiceActiveRef.current || gameResultRef.current) return
+      if (e.code !== 'KeyM' || voiceActiveRef.current || gameResultRef.current) return
       e.preventDefault()
       voiceActiveRef.current = true
 
@@ -422,7 +422,7 @@ export default function DuelSceneMultiplayer({ selectedCharacter, opponentCharac
     }
 
     const onKeyUp = (e) => {
-      if (e.code !== 'KeyV') return
+      if (e.code !== 'KeyM') return
       e.preventDefault()
       voiceActiveRef.current = false
       setVoiceStatus(null)

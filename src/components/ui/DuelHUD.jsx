@@ -220,7 +220,7 @@ export default function DuelHUD({ opponent, onExit, onNextLevel, playerName, opp
 
       {/* ── CONTROLS HINT ── */}
       <div style={s.hint}>
-        WASD&nbsp;·&nbsp;SPACE jump&nbsp;·&nbsp;✊🖐✌ gestures&nbsp;·&nbsp;V voice&nbsp;·&nbsp;ESC exit
+        WASD&nbsp;·&nbsp;SPACE jump&nbsp;·&nbsp;✊🖐✌ gestures&nbsp;·&nbsp;M voice&nbsp;·&nbsp;ESC exit
       </div>
 
       {/* ── WIN / LOSE OVERLAY ── */}
