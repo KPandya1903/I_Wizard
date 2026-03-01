@@ -1,0 +1,11 @@
+Model Information:
+* title:	Hogwarts Grand Hall
+* source:	https://sketchfab.com/3d-models/hogwarts-grand-hall-203784d1e8704cfba3af8a2b224b74ff
+* author:	zack_graham (https://sketchfab.com/zack_graham)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Hogwarts Grand Hall" (https://sketchfab.com/3d-models/hogwarts-grand-hall-203784d1e8704cfba3af8a2b224b74ff) by zack_graham (https://sketchfab.com/zack_graham) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
