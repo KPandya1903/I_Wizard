@@ -30,26 +30,26 @@ export function closeMultiplayer() {
   }
 }
 
-function initSocketListeners(resolve, reject) {
-  socket.on('connect', () => {
-    console.log('[MP] Socket connected:', socket.id)
+function initSocketListeners(socketInstance) {
+  socketInstance.on('connect', () => {
+    console.log('[MP] Socket connected:', socketInstance.id)
   })
 
-  socket.on('guest-joined', (guestId) => {
+  socketInstance.on('guest-joined', (guestId) => {
     console.log('[MP] Guest joined room:', guestId)
     if (onConnectedCallback) onConnectedCallback()
   })
 
-  socket.on('game-data', (data) => {
+  socketInstance.on('game-data', (data) => {
     if (onDataCallback) onDataCallback(data)
   })
 
-  socket.on('peer-disconnected', () => {
+  socketInstance.on('peer-disconnected', () => {
     console.log('[MP] Peer disconnected')
     if (onDisconnectCallback) onDisconnectCallback()
   })
 
-  socket.on('disconnect', () => {
+  socketInstance.on('disconnect', () => {
     console.log('[MP] Socket disconnected')
     if (onDisconnectCallback) onDisconnectCallback()
   })
@@ -61,7 +61,7 @@ export function createRoom() {
     console.log('[MP] createRoom: connecting to relay...')
     socket = io(SOCKET_SERVER_URL)
 
-    initSocketListeners()
+    initSocketListeners(socket)
 
     socket.on('connect', () => {
       socket.emit('create-room', ({ roomId }) => {
@@ -83,7 +83,7 @@ export function joinRoom(roomCode) {
     console.log('[MP] joinRoom: connecting to relay for room:', roomCode)
     socket = io(SOCKET_SERVER_URL)
 
-    initSocketListeners()
+    initSocketListeners(socket)
 
     socket.on('connect', () => {
       socket.emit('join-room', roomCode.trim(), (response) => {
